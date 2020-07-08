@@ -2,6 +2,7 @@
 
 namespace Drupal\background_image_formatter\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\image\Entity\ImageStyle;
@@ -119,63 +120,37 @@ class BackgroundImageFormatter extends ImageFormatter {
       $image_style = ImageStyle::load($image_style);
     }
 
-    foreach ($items as $delta => $item) {
+    $files = $this->getEntitiesToView($items, $langcode);
 
-      if (!$item->entity) {
+    foreach ($files as $delta => $entity) {
+
+      if ($files instanceof EntityInterface) {
         continue;
       }
 
-      $image_uri = file_url_transform_relative(file_create_url($item->entity->getFileUri()));
-
-      $id = $item->entity->id();
+      $image_url = file_url_transform_relative(file_create_url($entity->getFileUri()));
+      $id = $entity->id();
 
       if ($image_style) {
-        $image_uri = $item->entity->getFileUri();
+        $image_uri = $entity->getFileUri();
 
         $image_url = ImageStyle::load($image_style->getName())
           ->buildUrl($image_uri);
-        // When page caching is enabled, try serving the image
-        // from the correct HTTP protocol.
-        $image_uri = preg_replace('/^(https?:\/\/|\/\/)/', '//', $image_url);
       }
 
       $selector = strip_tags($this->getSetting('background_image_selector'));
 
       // Only add an id when using inline styles.
-      if ($this->getSetting('background_image_output_type') == 'inline') {
+      if ($this->getSetting('background_image_output_type') === 'inline') {
         $selector .= '_' . $id;
       }
 
       $theme = [
         '#background_image_selector' => $selector,
-        '#image_uri' => $image_uri,
+        '#image_uri' => $image_url,
       ];
 
-      switch ($this->getSetting('background_image_output_type')) {
-        case 'css':
-
-          $data = [
-            '#tag' => 'style',
-            '#value' => $this->generateCssString($theme),
-          ];
-
-          $elements['#attached']['html_head'][] = [
-            $data,
-            'background_image_formatter_' . $id,
-          ];
-
-          break;
-
-        case 'inline':
-
-          $theme['#theme'] = 'background_image_formatter_inline';
-
-          $elements[$delta] = [
-            '#markup' => \Drupal::service('renderer')->render($theme),
-          ];
-
-          break;
-      }
+      array_push($elements, $this->renderElements($delta, $theme, $id));
     }
 
     return $elements;
@@ -193,6 +168,50 @@ class BackgroundImageFormatter extends ImageFormatter {
    */
   protected function generateCssString($theme) {
     return $theme['#background_image_selector'] . ' {background-image: url("' . $theme['#image_uri'] . '");}';
+  }
+
+  /**
+   * Render image elements.
+   *
+   * @param int $delta
+   *   If multifield number of element.
+   * @param array $theme
+   *   Theme render array.
+   * @param string $id
+   *   Field id.
+   *
+   * @return array|null
+   *   Rendered array of elements.
+   */
+  public function renderElements($delta, array $theme, $id) {
+    $elements = NULL;
+    switch ($this->getSetting('background_image_output_type')) {
+      case 'css':
+
+        $data = [
+          '#tag' => 'style',
+          '#value' => $this->generateCssString($theme),
+        ];
+
+        $elements['#attached']['html_head'][] = [
+          $data,
+          'background_image_formatter_' . $id,
+        ];
+
+        break;
+
+      case 'inline':
+
+        $theme['#theme'] = 'background_image_formatter_inline';
+
+        $elements[$delta] = [
+          '#markup' => \Drupal::service('renderer')->render($theme),
+        ];
+
+        break;
+    }
+
+    return $elements;
   }
 
 }
