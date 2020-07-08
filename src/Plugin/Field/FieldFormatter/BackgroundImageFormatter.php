@@ -125,7 +125,7 @@ class BackgroundImageFormatter extends ImageFormatter {
         continue;
       }
 
-      $image_uri = $item->entity->url();
+      $image_uri = file_url_transform_relative(file_create_url($item->entity->getFileUri()));
 
       $id = $item->entity->id();
 
