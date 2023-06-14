@@ -128,7 +128,7 @@ class BackgroundImageFormatter extends ImageFormatter {
         continue;
       }
 
-      $image_url = file_url_transform_relative(file_create_url($entity->getFileUri()));
+      $image_url = \Drupal::service('file_url_generator')->generateString($entity->getFileUri());
       $id = $entity->id();
 
       if ($image_style) {
