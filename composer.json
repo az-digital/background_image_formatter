@@ -1,18 +1,22 @@
 {
-  "name": "drupal/background_image_formatter",
+  "name": "az-digital/background_image_formatter",
   "type": "drupal-module",
-  "description": "Background Image Formatter provides an image formatter to display images in background.",
+  "description": "Fork of Drupal Simple Background Image Formatter module with D10 support.",
   "keywords": [
     "Drupal"
   ],
   "license": "GPL-2.0+",
-  "homepage": "https://www.drupal.org/project/background_image_formatter",
+  "homepage": "https://github.com/az-digital/background_image_formatter",
   "minimum-stability": "dev",
   "authors": [],
   "support": {
-    "issues": "https://www.drupal.org/project/issues/background_image_formatter",
-    "source": "http://cgit.drupalcode.org/background_image_formatter"
+    "issues": "https://github.com/az-digital/background_image_formatter/issues",
+    "source": "https://github.com/az-digital/background_image_formatter"
   },
-  "require": {}
+  "require": {
+    "drupal/core": "^9.3 || ^10"
+  },
+  "replace": {
+    "drupal/background_image_formatter": "*"
+  }
 }
-
